@@ -2,9 +2,11 @@
   "name": "backend-project",
   "version": "1.0.0",
   "description": "\"A complex backend project to rise the bars\"",
+  "type":"module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/index.js"
+
   },
   "keywords": [
     "javascript",
@@ -13,6 +15,7 @@
   "author": "Raghavendra S B",
   "license": "ISC",
   "devDependencies": {
-    "nodemon": "^3.1.9"
-  }
+  "prettier": "^3.5.2"
+}
+
 }
