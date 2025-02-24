@@ -11,5 +11,8 @@
     "backend"
   ],
   "author": "Raghavendra S B",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
 }
