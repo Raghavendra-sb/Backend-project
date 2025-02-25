@@ -2,11 +2,10 @@
   "name": "backend-project",
   "version": "1.0.0",
   "description": "\"A complex backend project to rise the bars\"",
-  "type":"module",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/index.js"
-
+    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js"
   },
   "keywords": [
     "javascript",
@@ -15,7 +14,11 @@
   "author": "Raghavendra S B",
   "license": "ISC",
   "devDependencies": {
-  "prettier": "^3.5.2"
-}
-
+    "prettier": "^3.5.2"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongoose": "^8.10.1"
+  }
 }
