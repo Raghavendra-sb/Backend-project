@@ -8,14 +8,14 @@
 //         })
 //      }
 // }
-
+//The asyncHandler function is a higher-order function (a function that takes another function as an argument and returns a new function).
 const asyncHandler =(requestHandler)=>{
   
-    (req,res,next) =>{
+    return (req,res,next) =>{
    Promise.resolve(
     requestHandler(req,res,next)
    ).catch((err)=>next(err))
     }
 }
 
-export default asyncHandler;
+export  default asyncHandler;

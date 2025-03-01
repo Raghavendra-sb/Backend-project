@@ -1,4 +1,7 @@
-// This is a JavaScript class called ApiError that extends (builds on top of) the built-in Error class. The Error class is what JavaScript uses to represent errors—like when something crashes or fails. By extending it, ApiError inherits all the basic features of Error (like a message and a stack trace) and adds extra properties to make it more useful for specific scenarios, such as handling errors in an API.
+// This is a JavaScript class called ApiError that extends (builds on top of) the built-in Error class. 
+// The Error class is what JavaScript uses to represent errors—like when something crashes or fails. 
+// By extending it, ApiError inherits all the basic features of Error (like a message and a stack tra0ce) 
+// and adds extra properties to make it more useful for specific scenarios, such as handling errors in an API.
 class ApiError extends Error
 {
     constructor(

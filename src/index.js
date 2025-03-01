@@ -27,6 +27,14 @@ connectDB()
 
 
 
+//first method
+//use IFEE  make async arrow funtion , add try catch block 
+// in catch write error
+//in try it gives mongoose.connect which takes URL give it 
+// and also the database name for the connect
+//add error listenerts to listen for errors
+
+
 
 
 // import express from "express";
@@ -36,7 +44,7 @@ connectDB()
 // ;(async()=>{
 //     try{
 //    await mongoose.connect(`${process.env.MONGODB_URI }/${DB_NAME}`)
-//    app.on("error",(error)=>{
+//   erorr(listeners) app.on("error",(error)=>{
 //     console.log("error",error);
 //     throw error
 //    })
