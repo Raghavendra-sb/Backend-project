@@ -8,7 +8,7 @@ class ApiResponse {
 
     }
 }
-
+ export {ApiResponse};
 
 // What I Mean by "ApiResponse Wraps It Up for You"
 // The ApiResponse class we discussed earlier:
