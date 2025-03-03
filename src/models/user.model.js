@@ -59,25 +59,28 @@ const userSchema = new mongoose.Schema(
         }
     }
     , { timestamps: true, })
-
-userSchema.pre("save",async function (next) {
-    if( !this.isModified("password")) return next();
-    this.password= await bcrypt.hash(this.password,10)
-    next()
+//ensure that the password is hasshed only if the password is modifies or newly created
+userSchema.pre("save",async function (next) {//pre is a middleware which runs before the save method 
+    if( !this.isModified("password")) return next();//before saving the password we need to check if the password is modified or not
+    this.password= await bcrypt.hash(this.password,10)//if the password is modified then hash the password  and store it in the password field 
+    next()//then call the next middleware 
 })
 
-userSchema.methods.isPasswordCorrect = async function (password) {
+//method to check if the password is correct or not
+//if the password is correct then it will return true else false
+userSchema.methods.isPasswordCorrect = async function (password) {//userSchema.methods: A Mongoose feature to add custom 
+// instance methods to documents created from this schema.
    return await bcrypt.compare(password,this.password)
 }
 userSchema.methods.generateAccessToken = function (){
   return jwt.sign(
-    {
+    { //payload
         _id:this._id,
         email:this.email,
         username:this.username,
         fullname:this.fullname
-    },
-    process.env.ACCESS_TOKEN_SECRET,
+    },//this: Refers to the user document calling this method.
+    process.env.ACCESS_TOKEN_SECRET,//
     {
         expiresIn:process.env.ACCESS_TOKEN_EXPIRY
     }

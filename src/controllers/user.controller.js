@@ -18,7 +18,8 @@ const registerUser = asyncHandler(async (req,res)=>
         // send the response to the frontend
         //1st step
       const {fullname , email, username, password}= req.body//not for files handling only data
-      console.log("username",username);
+      // console.log("username",username);
+     // console.log("req.body",req.body);
       //2nd step for file handling  go for routes/user.routes.js
 
       //step 3 check for validation
@@ -29,8 +30,8 @@ const registerUser = asyncHandler(async (req,res)=>
           throw new ApiError(400,"Please fill all the fields");
     }
     //step 4 check if the user already exists
-  const existedUser =  User.findOne({
-      $or:[{emial},{username}] //or operator is used 
+  const existedUser =  await User.findOne({
+      $or:[{email},{username}] //or operator is used 
     })
 
     if(existedUser)
@@ -42,7 +43,10 @@ const registerUser = asyncHandler(async (req,res)=>
   // console.log("req.files",req.files);
    ///if files are there then only go for avatar and first property of avatar gives a object then u can go for path
    // by this u will get the proper path of the file uploaded by the multer
-   const coverImageLocalPath = req.files?.cover[0]?.path
+   //const coverImageLocalPath = req.files?.cover[0]?.path
+   let coverImageLocalPath;
+   if(req.files && Array.isArray(req.files.cover) && req.files.cover.length > 0)
+   {coverImageLocalPath = req.files.cover[0].path}
 
    // step 5 continued
    if(!avatarLocalPath)
@@ -86,3 +90,4 @@ const registerUser = asyncHandler(async (req,res)=>
 }   
 )
 export {registerUser}//registerUser export kiya
+
