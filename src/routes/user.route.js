@@ -3,6 +3,7 @@
 import { Router } from "express";//express ka router import kiya
 import {registerUser} from "../controllers/user.controller.js";//user.controller.js sae registerUser import kiya    
 import {upload} from "../middlewares/multer.middleware.js";//2nd step continuation of user.controller.js
+import {loginUser} from "../controllers/user.controller.js";//loginUser import kiya 
 const router =  Router();//router ka object banaya Router sae
 //initally 
 // router.route("/register").post(registerUser)//post method sae registerUser ko call kiya
@@ -27,4 +28,11 @@ router.route("/register").post(
     registerUser
 )
 //step 2 done go back to controller.js
+
+
+//router for login
+router.route("/login").post(loginUser)
+
+//secured route
+router.route("/logout").post(verifyJWT,logoutUser) //verifyJWT middleware is called before the logoutUser
 export default router;

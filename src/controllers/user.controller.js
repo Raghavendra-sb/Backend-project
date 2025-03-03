@@ -4,6 +4,23 @@ import {ApiError} from "../utils/ApiError.js";//ApiError import kiya
 import {User} from "../models/user.model.js";//User import kiya
 import { uploadFileCloudinary } from "../utils/Cloudinary.js";
 import {ApiResponse} from "../utils/ApiResponse.js";
+
+const generateAccessTokenandRefreshToken = async(userId)=>
+{ //only the refresh token is stored in the database and the access token and refresh  is sent to the frontend
+  const user = await User.findById(userId) //find the user by the id given during the login
+  if(!user)
+  {
+    throw new ApiError(404,"User not found")    
+  }
+ const accessToken =  user.generateAccessToken()//generate access token is a method in the user model which generates the access token for the user 
+  const refreshToken = user.generateRefreshToken()
+
+  user.refreshToken = refreshToken,//refresh token is stored in the database for the user 
+  await user.save({ValidateBeforeSave:false})//validate before save is false as we are not validating the password and other fields as we are only updating the refresh token
+  return {accessToken,refreshToken}//returning the access token and refresh token
+}
+
+
 const registerUser = asyncHandler(async (req,res)=>
 {
   
@@ -89,5 +106,93 @@ const registerUser = asyncHandler(async (req,res)=>
    )
 }   
 )
+
+
+
+const loginUser = asyncHandler(async (req,res)=>{
+          //req body -> data
+  //username or email based checking
+  //find the user
+  //check for the password
+  //access and refresh token generation
+  //send cookies to the frontend
+  const {username, email, password}=req.body
+
+  if(!(username || email))
+  {
+    throw new ApiError(400,"Please provide username or email")  
+  }
+
+  const user =await User.findOne(   //find one is a method which takes a object and find the user
+      {
+        $or:[{username},{email}]   //querying the database for the user using the or operator of mongodb
+      }  //as db is another in another continent so await is used and the user is stored in the user variable
+  )
+
+  if(!user)
+  {
+    throw new ApiError(404,"User not found");
+  }
+
+  const isPasswordVaild =await user.isPasswordCorrect(password)//imp : user is the instance of the user model
+  //User is the mongoose model
+  //here we are using the instance method of the user model and passing the password given during the login
+  //in the is PasswordCorrect method it chekcks the password given during the login and the password stored in the database
+  //if the password is correct then it will return true else false
+  if(!isPasswordVaild)
+  {
+    throw new ApiError(401,"Password is incorrect");
+  }
+
+  const {accessToken,refreshToken}=await generateAccessTokenandRefreshToken(user._id)//getting access token and refresh token through id and destructuring it to store in the variables
+
+  const loggedInUser = await User.findById(user._id).select("-password -refreshToken")//select is used to remove the password and refresh token from the response
+   
+  const options =
+  {
+    httpOnly:true,
+    secure:true,
+  }
+
+  res.status(200).
+  cookie("accessToken",accessToken,options).//(key,value,options)
+  cookie("refreshToken",refreshToken,options).//refresh token is stored in the cookie
+  json(
+    new ApiResponse(200,{user:loggedInUser,accessToken,refreshToken},"User logged in successfully")
+  )
+}
+)
+
+const logoutUser= asyncHandler(async(req,res)=>
+{
+        await User.findByIdandUpdate(req.user._id, //req.user is the user which is authenticated by the verifyJWT middleware 
+           {
+            $set:{
+                refreshToken: Undefined,    //refresh token is set to undefined
+            }
+           },
+           {
+            new:true//new is true as we want the updated user
+           }
+        )
+
+        const options =
+        {
+          httpOnly:true,
+          secure:true,
+        }
+
+        return 
+        res
+        .status(200)
+        .clearCookie("accessToken",options)
+        .clearCookie("refreshToken",options)
+        .json(new ApiResponse(200,{},"User logged out successfully"))
+})
+
+
 export {registerUser}//registerUser export kiya
 
+export {loginUser}
+
+export {logoutUser}
