@@ -60,7 +60,9 @@ const userSchema = new mongoose.Schema(
     }
     , { timestamps: true, })
 //ensure that the password is hasshed only if the password is modifies or newly created
-userSchema.pre("save",async function (next) {//pre is a middleware which runs before the save method 
+userSchema.pre("save",async function (next) {//pre is a middleware which runs before the save method . the function of pre is that it takes two arguments
+    //1st argument is the event on which the middleware will run
+    //2nd argument is the function which will run before the event
     if( !this.isModified("password")) return next();//before saving the password we need to check if the password is modified or not
     this.password= await bcrypt.hash(this.password,10)//if the password is modified then hash the password  and store it in the password field 
     next()//then call the next middleware 

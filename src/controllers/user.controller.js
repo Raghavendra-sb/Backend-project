@@ -244,6 +244,120 @@ const refreshAccessToken = asyncHandler(async(req,res)=>{
        }
 })
 
+const changePassword = asyncHandler(async(req,res)=>
+{
+  const {oldPassword,newPassword} =req.body;//i will check wheter the user is logged in or not in the router file by using the verifyJWT middleware
+  const user = await User.findById(req.user?._id)//req.user is the user which is authenticated by the verifyJWT middleware 
+  user.isPasswordCorrect(oldPassword);
+  if(!isPasswordCorrect)
+   {
+    throw new ApiError(401,"Old password is incorrect");
+   }
+
+   user.password = newPassword;
+   await user.save({validateBeforeSave:false})//validate before save is false as we are not validating the password and other fields as we are only updating the password
+  
+   return res.status(200).json(new ApiResponse(200,{},"Password Updated Successfully"));
+
+
+  
+})
+
+//current user is the user which is authenticated by the verifyJWT middleware
+const getCurrentUser = asyncHandler(async(req,res)=>
+{
+         const user =  await User.findById(req.user?._id).select("-password -refreshToken");
+         if(!user)
+         {
+          throw new res.error(404,"User not found");
+         }
+         return res.status(200).json(new ApiResponse(200,user," Current User found successfully"));
+})
+
+const updateAccountDetails = asyncHandler(async(req,res)=>
+{
+  const {fullname,email}=req.body;
+  if(!fullname || !email)
+  {
+    throw new ApiError(400,"Please provide fullname and email");
+  } 
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set:{
+        fullname,
+        email
+      }
+    },
+    {new:true}
+  ).select("-password -refreshToken")
+
+  return res.status(200).json(new ApiResponse(200,user,"Account details updated successfully"));
+})
+
+//file update (two middleware are user multer and jwt)
+
+const updateUserAvatar = asyncHandler(async(req,res)=>
+{
+     const avatarLocalPath = req.file?.path
+     if(!avatarLocalPath)
+     {
+      throw new ApiError(400 , "Avatar is missing")
+     }
+     const avatar = await uploadFileCloudinary(avatarLocalPath)
+
+     if(!avatar.url)
+     {
+      throw new ApiError(400,"Avatar upload in Cloudinary Unsuccessful")
+     }
+     User.findByIdAndUpdate(req.user?._id
+      ,
+      {
+        $set:{
+               avatar:avatar.url
+        }
+      },
+      {
+        set:true
+      }
+     )
+     return res.status(200).json(new ApiResponse(200,avatar.url,"Avatar update successful"))
+
+
+})
+
+const updateUserCoverImage = asyncHandler(async(req,res)=>
+  {
+       const coverImageLocalPath = req.file?.path
+       if(!avatarLocalPath)
+       {
+        throw new ApiError(400 , "Avatar is missing")
+       }
+       const coverImage = await uploadFileCloudinary(coverImageLocalPath)
+  
+       if(!coverImage.url)
+       {
+        throw new ApiError(400,"CoverImage upload in Cloudinary Unsuccessful")
+       }
+       User.findByIdAndUpdate(req.user?._id
+        ,
+        {
+          $set:{
+                 coverImage:coverImage.url
+          }
+        },
+        {
+          set:true
+        }
+       )
+       return res.status(200).json(new ApiResponse(200,avatar.url,"CoverImage update successful"))
+  
+  })
+
+
+
+
+
 export {registerUser}//registerUser export kiya
 
 export {loginUser}
@@ -251,3 +365,13 @@ export {loginUser}
 export {logoutUser}
 
 export {refreshAccessToken}
+
+export {changePassword}
+
+export {getCurrentUser}
+
+export {updateAccountDetails}
+
+export{updateUserAvatar}
+
+export{updateUserCoverImage}
