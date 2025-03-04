@@ -4,6 +4,7 @@ import {ApiError} from "../utils/ApiError.js";//ApiError import kiya
 import {User} from "../models/user.model.js";//User import kiya
 import { uploadFileCloudinary } from "../utils/Cloudinary.js";
 import {ApiResponse} from "../utils/ApiResponse.js";
+import jwt from "jsonwebtoken";
 
 const generateAccessTokenandRefreshToken = async(userId)=>
 { //only the refresh token is stored in the database and the access token and refresh  is sent to the frontend
@@ -150,8 +151,9 @@ const loginUser = asyncHandler(async (req,res)=>{
    
   const options =
   {
-    httpOnly:true,
-    secure:true,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // Only secure in production (HTTPS)
+    sameSite: "strict", // Prevent CSRF
   }
 
   res.status(200).
@@ -165,10 +167,10 @@ const loginUser = asyncHandler(async (req,res)=>{
 
 const logoutUser= asyncHandler(async(req,res)=>
 {
-        await User.findByIdandUpdate(req.user._id, //req.user is the user which is authenticated by the verifyJWT middleware 
+        await User.findByIdAndUpdate(req.user._id, //req.user is the user which is authenticated by the verifyJWT middleware 
            {
             $set:{
-                refreshToken: Undefined,    //refresh token is set to undefined
+                refreshToken:""//refresh token is set to empty string
             }
            },
            {
@@ -182,14 +184,24 @@ const logoutUser= asyncHandler(async(req,res)=>
           secure:true,
         }
 
-        return 
-        res
-        .status(200)
-        .clearCookie("accessToken",options)
-        .clearCookie("refreshToken",options)
-        .json(new ApiResponse(200,{},"User logged out successfully"))
+       return res.status(200).
+       clearCookie("accessToken",options). 
+        clearCookie("refreshToken",options).
+        json(
+          new ApiResponse(200,{},"User logged out successfully")
+        )
 })
 
+// const refreshAccessToken = asyncHandler(async(req,res)=>{
+//          const IncommingRefreshToken = req.cookie.refreshToken || req.body.refreshToken
+
+//          if(!IncommingRefreshToken)
+//          {
+//          throw new ApiError(401,"Unauthorized request")
+//          }
+
+//         const decodedToken = jwt.verify(IncommingRefreshToken,process.env.REFRESH_TOKEN_SECRET)
+//})
 
 export {registerUser}//registerUser export kiya
 

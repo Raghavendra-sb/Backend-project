@@ -4,6 +4,8 @@ import { Router } from "express";//express ka router import kiya
 import {registerUser} from "../controllers/user.controller.js";//user.controller.js sae registerUser import kiya    
 import {upload} from "../middlewares/multer.middleware.js";//2nd step continuation of user.controller.js
 import {loginUser} from "../controllers/user.controller.js";//loginUser import kiya 
+import {verifyJWT} from "../middlewares/auth.middleware.js";//verifyJWT import kiya
+import {logoutUser} from "../controllers/user.controller.js";//logoutUser import kiya
 const router =  Router();//router ka object banaya Router sae
 //initally 
 // router.route("/register").post(registerUser)//post method sae registerUser ko call kiya
