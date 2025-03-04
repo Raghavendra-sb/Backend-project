@@ -6,6 +6,7 @@ import {upload} from "../middlewares/multer.middleware.js";//2nd step continuati
 import {loginUser} from "../controllers/user.controller.js";//loginUser import kiya 
 import {verifyJWT} from "../middlewares/auth.middleware.js";//verifyJWT import kiya
 import {logoutUser} from "../controllers/user.controller.js";//logoutUser import kiya
+immport {refreshToken} from "../controllers/user.controller.js";//refreshToken import kiya
 const router =  Router();//router ka object banaya Router sae
 //initally 
 // router.route("/register").post(registerUser)//post method sae registerUser ko call kiya
@@ -37,4 +38,5 @@ router.route("/login").post(loginUser)
 
 //secured route
 router.route("/logout").post(verifyJWT,logoutUser) //verifyJWT middleware is called before the logoutUser
+router.route("/refresh-token").post(refreshToken)//refreshToken is called
 export default router;

@@ -192,19 +192,60 @@ const logoutUser= asyncHandler(async(req,res)=>
         )
 })
 
-// const refreshAccessToken = asyncHandler(async(req,res)=>{
-//          const IncommingRefreshToken = req.cookie.refreshToken || req.body.refreshToken
+const refreshAccessToken = asyncHandler(async(req,res)=>{
+         const IncommingRefreshToken = req.cookie.refreshToken || req.body.refreshToken
 
-//          if(!IncommingRefreshToken)
-//          {
-//          throw new ApiError(401,"Unauthorized request")
-//          }
+         if(!IncommingRefreshToken)
+         {
+         throw new ApiError(401,"Unauthorized request")
+         }
 
-//         const decodedToken = jwt.verify(IncommingRefreshToken,process.env.REFRESH_TOKEN_SECRET)
-//})
+       try {
+         const decodedToken = jwt.verify(IncommingRefreshToken,process.env.REFRESH_TOKEN_SECRET)
+ 
+         if(!decodedToken)
+         {
+           throw new ApiError(401,"Unauthorized request")
+         }
+ 
+         const user = await User.findById(decodedToken._id)
+ 
+         if(!user) 
+         {
+           throw new ApiError(404,"User not found")
+         }
+ 
+         if(user.refreshToken !== IncommingRefreshToken)//user.refreshToken is the refresh token stored in the database
+         {//incoming refresh token is the refresh token sent by the frontend
+           throw new ApiError(401,"Refresh token is expired or invalid")
+         }
+ 
+         const {accessToken,newRefreshToken}= generateAccessTokenandRefreshToken(user._id)
+ 
+         const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+ 
+         const options =
+         {
+           httpOnly:true,
+           secure:true
+         }
+ 
+         res.status(200).
+         cookie("accessToken",accessToken,options).
+         cookie("refreshToken",newRefreshToken,options).
+         json(
+           new ApiResponse(200,{user:loggedInUser,accessToken,newRefreshToken},"Access token refreshed successfully")
+         )
+       } catch (error) {
+        
+         throw new ApiError(401,error?.message || "Invalid refresh token");
+       }
+})
 
 export {registerUser}//registerUser export kiya
 
 export {loginUser}
 
 export {logoutUser}
+
+export {refreshAccessToken}
