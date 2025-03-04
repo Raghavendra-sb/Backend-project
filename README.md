@@ -1,2 +1,2 @@
 # Backend-project
-a simple backend project 
+a backend project 
