@@ -7,7 +7,7 @@ export const verifyJWT = asyncHandler( async(req,res,next)=>
 {
     try {
         const token = req.cookies?.accessToken || req.headers("Authorization")?.replace("Bearer ", "");
-        //const token= req.cookies?.accessToken || req.headers("Authorization")?.replace("Bearer ","")
+        // const token= req.cookies?.accessToken || req.headers("Authorization")?.replace("Bearer ","")
         //replace("Bearer ","") 
     //is used to remove the bearer from the token and only the token is stored in the token variable
     
