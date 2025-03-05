@@ -310,7 +310,7 @@ const updateUserAvatar = asyncHandler(async(req,res)=>
      {
       throw new ApiError(400,"Avatar upload in Cloudinary Unsuccessful")
      }
-     User.findByIdAndUpdate(req.user?._id
+     await User.findByIdAndUpdate(req.user?._id
       ,
       {
         $set:{
@@ -329,9 +329,14 @@ const updateUserAvatar = asyncHandler(async(req,res)=>
 const updateUserCoverImage = asyncHandler(async(req,res)=>
   {
        const coverImageLocalPath = req.file?.path
-       if(!avatarLocalPath)
+       if(!coverImageLocalPath)
        {
-        throw new ApiError(400 , "Avatar is missing")
+        throw new ApiError(400 , "CoverImage is missing")
+       }
+       try {
+         await fs.unlink(coverImageLocalPath)
+       } catch (error) {
+        console.error("Error deleting local file:", error); 
        }
        const coverImage = await uploadFileCloudinary(coverImageLocalPath)
   
@@ -339,7 +344,7 @@ const updateUserCoverImage = asyncHandler(async(req,res)=>
        {
         throw new ApiError(400,"CoverImage upload in Cloudinary Unsuccessful")
        }
-       User.findByIdAndUpdate(req.user?._id
+       await User.findByIdAndUpdate(req.user?._id
         ,
         {
           $set:{
@@ -350,12 +355,95 @@ const updateUserCoverImage = asyncHandler(async(req,res)=>
           set:true
         }
        )
-       return res.status(200).json(new ApiResponse(200,avatar.url,"CoverImage update successful"))
+       
+       
+       return res.status(200).json(new ApiResponse(200,coverImage.url,"CoverImage update successful"))
   
   })
 
+const deleteUser = asyncHandler(async(req,res)=>
+{
+  await User.findByIdAndDelete(req.user?._id)
+  res.status(200).json(new ApiResponse(200,{},"User deleted successfully"))
+
+}
+)
+
+const getUserChannelProfile= asyncHandler(async(req,res)=>
+{
+         const {username} = req.params
+         if(!username?.trim())//trim is used to remove the white spaces and gives undefined if the username is empty
+         {
+          throw new ApiError(400,"Invalid username")
+         }
+         const channel = await User.aggregate([
+          {
+            $match:{
+              username:username
+            },
+            //for subscriber count
+            $lookup:{
+              from:"subscriptions",
+              localField:"_id",
+              foreignField:"channel",//if channel id is equal to the id of the user then it will be considered as the subscriber.as channel is a entity of the subscription model and the id of the user is stored in the channel field of the subscription model
+              as:"subscribers" //as is used to store the result in the subscribers field
+            },//now we have the subscribers field in the user model which contains the subscribers of the user 
+            //for subscription count
+            $lookup:{
+              from:"subscriptions",
+              localField:"_id",
+              foreignField:"subscriber",
+              as:"subscriedTo"
+            },
+            $addFields:{
+              subscriberCount: 
+              {
+                $size:"$subscribers"//count the number of document with same channel id which indirectly gives the number of subscribers
+              },
+              subscribedToCount:
+              {
+                $size:"$subscribedTo"
+              },
+              isSubscribed:
+              {
+                //  $cond:{
+                //     if: {$in :[req.user?._id ,"$subscribers.subscriber"]}
+                //  }
+                    $cond:
+                    {
+                      if:{$in : [req.user?._id,"$subscribers.subscriber"]},//the function of in is that it checks if the first argument is present in the second argument or not 
+                      //if the user id is present in the subscribers field then it will return true else false
+
+                      then:true,
+                      else:false
+                    }
+              }
+            },
+            $project:
+            {
+              username:1,
+              fullname:1,
+              subscriberCount: 1,
+              subscribedToCount:1,
+              isSubscribed:1,
+              avatar:1,
+              coverImage:1,
+              email:1
+
+            }
+            
+          }
+         ])
 
 
+         if(!channel?.length)//the purpose of .length is that if the channel is empty then it will return 0
+         {
+          throw new ApiError(404,"Channel not found")
+         }
+
+         return res.status(200).json(new ApiResponse(200,channel[0],"Channel found Successfully"));
+}
+)
 
 
 export {registerUser}//registerUser export kiya
@@ -374,4 +462,6 @@ export {updateAccountDetails}
 
 export{updateUserAvatar}
 
-export{updateUserCoverImage}
+export{updateUserCoverImage,
+        deleteUser
+}
