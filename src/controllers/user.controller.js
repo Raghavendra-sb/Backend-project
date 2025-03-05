@@ -5,6 +5,7 @@ import {User} from "../models/user.model.js";//User import kiya
 import { uploadFileCloudinary } from "../utils/Cloudinary.js";
 import {ApiResponse} from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import mongoose, { mongo } from "mongoose";
 
 const generateAccessTokenandRefreshToken = async(userId)=>
 { //only the refresh token is stored in the database and the access token and refresh  is sent to the frontend
@@ -445,6 +446,58 @@ const getUserChannelProfile= asyncHandler(async(req,res)=>
 }
 )
 
+const getUserWatchHistory = asyncHandler(async(req,res)=>
+{
+                 const user = await User.aggregate([
+                  {
+                    $match:
+                    {
+                      _id:new mongoose.Types.ObjectId(req.user._id)
+                    },
+                    $lookup:
+                    {
+                      from:"videos",
+                      localField:"watchHistory",
+                      foreignField:"_id",
+                      as:"watchHistory",
+                       
+                      pipeline:[
+                        {
+                          $lookup:
+                          {
+                            from:"users",
+                            localField:"owner",
+                            foreignField:"_id",
+                            as:"owner",
+
+                            pipeline:[
+                              {
+                                $project:
+                                { fullname:1,
+                                  username:1,
+                                  avatar:1,
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          $addFields:
+                          {
+                            owner:
+                            {
+                              $first:"owner"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+
+                ])
+                return res.status(200).json( new ApiResponse(200,user[0].watchHistory,"user watch history successfull"))
+})
+
 
 export {registerUser}//registerUser export kiya
 
@@ -463,5 +516,7 @@ export {updateAccountDetails}
 export{updateUserAvatar}
 
 export{updateUserCoverImage,
-        deleteUser
+        deleteUser,
+        getUserChannelProfile,
+        getUserWatchHistory
 }
