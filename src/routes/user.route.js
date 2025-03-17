@@ -7,7 +7,7 @@ import {loginUser} from "../controllers/user.controller.js";//loginUser import k
 import {verifyJWT} from "../middlewares/auth.middleware.js";//verifyJWT import kiya
 import {logoutUser} from "../controllers/user.controller.js";//logoutUser import kiya
 import {refreshAccessToken} from "../controllers/user.controller.js";//refreshToken import kiya
-import { Cursor } from "mongoose";
+//import { Cursor } from "mongoose";
 const router =  Router();//router ka object banaya Router sae
 //initally 
 // router.route("/register").post(registerUser)//post method sae registerUser ko call kiya
